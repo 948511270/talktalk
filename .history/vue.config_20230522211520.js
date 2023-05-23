@@ -4,7 +4,7 @@ module.exports = defineConfig({
   devServer:{
     proxy:{
       '/record':{
-        target:'http://192.168.75.99:9000',
+        target:'http://192.168.176.99:9000',
         // ws:true,
         changeOrigin:true
       }

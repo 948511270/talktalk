@@ -85,7 +85,13 @@ export default {
   props: {
     
   },
-  
+  mounted(){
+    this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
+    // 监听window的resize事件
+    window.onresize = () => {
+        this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
+    }
+  },
   data() {
     return {
       // 标识了选中了左边选中了和哪个人聊天，之后给他加灰色选中效果
@@ -237,10 +243,10 @@ export default {
       }
       
       this.chatCache += html;
-      this.toTheBotton()
+      
 
     },
-// 本方法适用于选择左侧好友栏
+
     activeFun(index){
         // item 为被选中的元素体
         this.activeVar=index
@@ -252,14 +258,9 @@ export default {
         // 这里将时间切割为 19:23:38 格式
         this.lastTime = this.allChatRecordsCopy[this.activeVar][1][0].deadline.split(' ')[1]
     },
-// 本方法使用于发送新消息或者获取新消息直接返回至聊天框最底部
-    toTheBotton(){
-      this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
-      // 监听window的resize事件
-      window.onresize = () => {
-          this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
-      }
- 
+
+    clog(){
+      console.log("进入了clog()");
     }
 
   

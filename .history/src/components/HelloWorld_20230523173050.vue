@@ -22,12 +22,14 @@
         <span style="display: block;margin-left: 8px;padding:1.6%;font: 1.6em Arial, Tahoma, Verdana;" >{{ nowFriend }}</span>
         </div>
         <div id="chat-box">
-          <div class="main" style="overflow: scroll;" ref="chatboxRef">
+          <div class="main" style="overflow: scroll;">
             <ul id="message">
             
             
               <li v-for="(item,i,index) in allChatRecordsRelatedToThisUser" :key="index">
-              
+                <div>
+
+                </div>
                 <template v-if="item[0].friendId == nowTalkingFriendId">
                   
                   <span v-for="(item,i,index) in item" :key="index"> 
@@ -41,8 +43,8 @@
                      </template>
                      <template v-if="item.senderId == UserId || item.receiverId == nowTalkingFriendId ">
                      <!-- <template v-if="item.senderId == '2' "> -->
-                      <li class="text-right"  >
-                        <div class="item.content" style="display: inline-block;border-radius: 7px;background-color: #a6e860;padding: 6px 10px 8px 10px;position: relative;">
+                      <li class="text-right" >
+                        <div style="display: inline-block;border-radius: 7px;background-color: #a6e860;padding: 6px 10px 8px 10px;position: relative;">
                           {{item.content}}
                         </div>
                       </li>
@@ -56,7 +58,6 @@
                  
               
           </ul>
-          <ul v-html="chatCache"></ul>
           </div>
           
         </div>
@@ -85,7 +86,6 @@ export default {
   props: {
     
   },
-  
   data() {
     return {
       // 标识了选中了左边选中了和哪个人聊天，之后给他加灰色选中效果
@@ -93,25 +93,27 @@ export default {
         nowFriend:null,
         activeVar:null,
         token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjg1MTEwNTgwfQ.DP5t-a8SH-5Mc5nxXjmnvIJA7AJ78EkCg9oOTyugkuI',
-        text:'',
+        
+        
+        text:'123321',
         UserId:'1',
-        nowTalkingFriendId:'',
+        nowTalkingFriendId:'2',
+        
         nowTalkFriendAvatar:'',
         allChatRecordsCopy:'',
         allChatRecordsRelatedToThisUser:'',
-        chatCache:''
+        
 
     
     }
   },
   created() {
-    
+    console.log("created执行");
       this.init()
     },
   methods:{
     init(){
-     let that = this
-     console.log("init里的this",this);
+     console.log("init()执行");
       //此处请求该用户的所有聊天记录
      this.$axios.get('/record/getChatRecord',{
               headers: {
@@ -138,7 +140,7 @@ export default {
         console.log("您的浏览器不支持WebSocket");
       } else {
         console.log("您的浏览器支持WebSocket");
-        let socketUrl = "ws://192.168.75.99:9000/chat/" + this.UserId 
+        let socketUrl = "ws://192.168.176.99:9000/chat/" + this.UserId 
         // 判断此处是否已经开启了WebSocket服务，如果开启了，则把它关了。
         if (socket != null) {
           socket.close();
@@ -153,15 +155,9 @@ export default {
           console.log("websocket已打开");
         };
         socket.onmessage = function (msg) {
-          
+          console.log("onmessage方法调用,WebSocket接收到消息:",msg.data);
           let data = JSON.parse(msg.data)
-          console.log("onmessage方法调用,WebSocket接收到消息:",data);
-
-          if(!data.system){
-            that.createContent(data.fromId,null,data.message)
-            
-          }
-          
+          console.log("JSON.parse后的data",data);
         }
         socket.onclose = function () {
           console.log("websocket已关闭");
@@ -175,14 +171,12 @@ export default {
     },
     
     clickEmoji(){
-      // console.log("clickEmoji()");
-      console.log("this.$refs.chatboxRef.scrollHeight",this.$refs.chatboxRef.scrollTop);
-      console.log("this.$refs.chatboxRef.scrollHeight",this.$refs.chatboxRef.scrollHeight);
+      console.log("clickEmoji()");
       
     },
     clickSubmit(){
       console.log("点击了发送按钮");
-      if (!this.nowTalkingFriendId) {
+      if (!this.chatUser) {
         this.$message({type: 'warning', message: "请选择聊天对象"})
         return;
       }
@@ -199,7 +193,8 @@ export default {
               let message = {fromId: this.UserId, toId: this.nowTalkingFriendId, content: this.text,messageType:'文字'}
               // 将组装好的json发送给服务端，由服务端进行转发
               socket.send(JSON.stringify(message));  
-              
+              //将textarea里的文字清空，因为双向绑定了 data里的text，所以只需要将text清空
+              this.text = ''
 
           } catch (error) {
             // send失败后调用error
@@ -207,59 +202,31 @@ export default {
           }
         }
 
-      this.createContent(null,this.UserId,this.text)
-      //将textarea里的文字清空，因为双向绑定了 data里的text，所以只需要将text清空
-      this.text = ''
-      
+      this.createContent(null,this,this.UserId,this.text,)
+
   } 
           
     },
     
     createContent(nowTalkingFriendId,UserId,text){
-      console.log("createContent()调用");
-      let html
-      
-      // 当前用户消息
-      if (UserId) { // UserId 表示是否显示当前用户发送的聊天消息，绿色气泡
-          console.log("进入了if");
-        html = "<li class=\"text-right\" style=\"text-align: right;\" >\n"+
-          "<span style=\"display: inline-block;border-radius: 7px;background-color:  #a6e860;padding: 6px 10px 8px 10px;position: relative;\">\n"+
-          text +
-          "</span>\n"+
-          "</li>";
-      } else if (nowTalkingFriendId) {   // nowTalkingFriendId表示远程用户聊天消息，蓝色的气泡
-        console.log("进入了else if");
-        html = "<li class=\"text-left\" >\n"+
-          "<div style=\"display: inline-block;border-radius: 7px;background-color: #59c1e4;padding: 6px 10px 8px 10px;position: relative;\">\n"+
-            + text +
-          "</div>\n"+
-          "</li>";
-      }
-      
-      this.chatCache += html;
-      this.toTheBotton()
 
     },
-// 本方法适用于选择左侧好友栏
+
     activeFun(index){
         // item 为被选中的元素体
         this.activeVar=index
         
+        
+
         // 这里将当前选中的人赋值给nowFriend，以供给聊天界面显示当前聊天对象昵称
         this.nowFriend = this.allChatRecordsCopy[this.activeVar][1][0].nickName
         this.nowTalkingFriendId = this.allChatRecordsCopy[this.activeVar][0]
          
         // 这里将时间切割为 19:23:38 格式
         this.lastTime = this.allChatRecordsCopy[this.activeVar][1][0].deadline.split(' ')[1]
-    },
-// 本方法使用于发送新消息或者获取新消息直接返回至聊天框最底部
-    toTheBotton(){
-      this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
-      // 监听window的resize事件
-      window.onresize = () => {
-          this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
-      }
- 
+        
+        
+        
     }
 
   

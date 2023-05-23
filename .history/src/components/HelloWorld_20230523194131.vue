@@ -78,14 +78,13 @@
 <script>
 
 
-
+let that = this
 let socket;
 export default {
   name: 'HelloWorld',
   props: {
     
   },
-  
   data() {
     return {
       // 标识了选中了左边选中了和哪个人聊天，之后给他加灰色选中效果
@@ -110,8 +109,7 @@ export default {
     },
   methods:{
     init(){
-     let that = this
-     console.log("init里的this",this);
+     
       //此处请求该用户的所有聊天记录
      this.$axios.get('/record/getChatRecord',{
               headers: {
@@ -158,8 +156,8 @@ export default {
           console.log("onmessage方法调用,WebSocket接收到消息:",data);
 
           if(!data.system){
-            that.createContent(data.fromId,null,data.message)
-            
+            // this.createContent(data.fromId,null,data.message)
+            console.log(that);
           }
           
         }
@@ -175,9 +173,7 @@ export default {
     },
     
     clickEmoji(){
-      // console.log("clickEmoji()");
-      console.log("this.$refs.chatboxRef.scrollHeight",this.$refs.chatboxRef.scrollTop);
-      console.log("this.$refs.chatboxRef.scrollHeight",this.$refs.chatboxRef.scrollHeight);
+      console.log("clickEmoji()");
       
     },
     clickSubmit(){
@@ -237,10 +233,10 @@ export default {
       }
       
       this.chatCache += html;
-      this.toTheBotton()
+      
 
     },
-// 本方法适用于选择左侧好友栏
+
     activeFun(index){
         // item 为被选中的元素体
         this.activeVar=index
@@ -252,14 +248,9 @@ export default {
         // 这里将时间切割为 19:23:38 格式
         this.lastTime = this.allChatRecordsCopy[this.activeVar][1][0].deadline.split(' ')[1]
     },
-// 本方法使用于发送新消息或者获取新消息直接返回至聊天框最底部
-    toTheBotton(){
-      this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
-      // 监听window的resize事件
-      window.onresize = () => {
-          this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
-      }
- 
+
+    clog(){
+      console.log("进入了clog()");
     }
 
   

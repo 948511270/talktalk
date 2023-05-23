@@ -254,7 +254,7 @@ export default {
     },
 // 本方法使用于发送新消息或者获取新消息直接返回至聊天框最底部
     toTheBotton(){
-      this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
+      // this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
       // 监听window的resize事件
       window.onresize = () => {
           this.$refs.chatboxRef.scrollTop = this.$refs.chatboxRef.scrollHeight
