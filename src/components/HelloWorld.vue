@@ -10,7 +10,7 @@
           <div class="friend-infomation-top" style="margin-top: 4px;height: 50%;" >
             <div style="width: 200px;display: flex;flex-direction: row;justify-content:space-between ;">
               <span style="font: 1em Arial, Tahoma, Verdana;padding-left: 15px;">{{ item[0].nickName }}</span>
-              <span style="font: 0.8em sans-serif;margin-top: 0.3999%;bottom: 0;"  >{{ item[0].deadline.split(' ')[0] }}</span>
+              <span style="font: 0.8em sans-serif;margin-top: 0.3999%;bottom: 0;"  >{{ (item[0].deadline || "").split(' ')[0]}}</span>
             </div>
           </div>
         </div>
@@ -34,17 +34,17 @@
                     <template v-if="item.senderId == nowTalkingFriendId || item.receiverId == UserId ">
                      <!-- <template v-if="item.senderId == '1' "> -->
                       <li class="text-left" >
-                        <div style="display: inline-block;border-radius: 7px;background-color:  #59c1e4;padding: 6px 10px 8px 10px;position: relative;">
+                        <span style="display: inline-block;border-radius: 7px;background-color:#59c1e4  ;padding: 6px 10px 8px 10px;position: relative;color: #ffffff;">
                           {{item.content}}
-                        </div>
+                        </span>
                       </li>
                      </template>
                      <template v-if="item.senderId == UserId || item.receiverId == nowTalkingFriendId ">
                      <!-- <template v-if="item.senderId == '2' "> -->
                       <li class="text-right"  >
-                        <div class="item.content" style="display: inline-block;border-radius: 7px;background-color: #a6e860;padding: 6px 10px 8px 10px;position: relative;">
+                        <span class="item.content" style="display: inline-block;border-radius: 7px;background-color: #a6e860;padding: 6px 10px 8px 10px;position: relative;">
                           {{item.content}}
-                        </div>
+                        </span>
                       </li>
                      </template>
                   </span>
@@ -78,7 +78,7 @@
 <script>
 
 
-
+// let that = this
 let socket;
 export default {
   name: 'HelloWorld',
@@ -92,7 +92,7 @@ export default {
         lastTime:null,
         nowFriend:null,
         activeVar:null,
-        token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjg1MTEwNTgwfQ.DP5t-a8SH-5Mc5nxXjmnvIJA7AJ78EkCg9oOTyugkuI',
+        token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjkxMzA2MzA3fQ.8tnNE8m2HY1HZcOw4ijcII6tqP4BR7K0ONBN_5dvl4o',
         text:'',
         UserId:'1',
         nowTalkingFriendId:'',
@@ -116,17 +116,21 @@ export default {
      this.$axios.get('/record/getChatRecord',{
               headers: {
                 // 此处将该用户的token加入到axios请求头中
-                'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjg1MTEwNTgwfQ.DP5t-a8SH-5Mc5nxXjmnvIJA7AJ78EkCg9oOTyugkuI'
+                'Authorization': this.token
+              },
+              params: { 
+                  friendId: 7,
+                  
               }
-
               }).then(res=>{
-                  console.log("该用户的全部聊天记录：",res);
+                  console.log("该用户的全部聊天记录：",res.data);
                   // 获取到的是{[],[]}格式
                   this.allChatRecordsRelatedToThisUser = res.data.data
                   
                   // 处理成数组形式 [[],[]]  (关于为什么要处理：为了用索引值拿id，只有转换成数组形式，才能有索引值。对象形式vue会把id当作索引值)
                   this.allChatRecordsCopy = Object.entries(this.allChatRecordsRelatedToThisUser)
-                  
+                  // console.log("this.allChatRecordsRelatedToThisUser",this.allChatRecordsRelatedToThisUser);
+                  // console.log("this.allChatRecordsCopy",this.allChatRecordsCopy);
                  
                 },err=>{
                   console.log("获取该用户的全部聊天记录失败，",err);
@@ -138,7 +142,7 @@ export default {
         console.log("您的浏览器不支持WebSocket");
       } else {
         console.log("您的浏览器支持WebSocket");
-        let socketUrl = "ws://192.168.75.99:9000/chat/" + this.UserId 
+        let socketUrl = "ws://192.168.21.99:9000/chat/" + this.UserId 
         // 判断此处是否已经开启了WebSocket服务，如果开启了，则把它关了。
         if (socket != null) {
           socket.close();
@@ -175,9 +179,8 @@ export default {
     },
     
     clickEmoji(){
-      // console.log("clickEmoji()");
-      console.log("this.$refs.chatboxRef.scrollHeight",this.$refs.chatboxRef.scrollTop);
-      console.log("this.$refs.chatboxRef.scrollHeight",this.$refs.chatboxRef.scrollHeight);
+      console.log("clickEmoji()");
+      
       
     },
     clickSubmit(){
@@ -221,18 +224,18 @@ export default {
       
       // 当前用户消息
       if (UserId) { // UserId 表示是否显示当前用户发送的聊天消息，绿色气泡
-          console.log("进入了if");
+          
         html = "<li class=\"text-right\" style=\"text-align: right;\" >\n"+
           "<span style=\"display: inline-block;border-radius: 7px;background-color:  #a6e860;padding: 6px 10px 8px 10px;position: relative;\">\n"+
           text +
           "</span>\n"+
           "</li>";
       } else if (nowTalkingFriendId) {   // nowTalkingFriendId表示远程用户聊天消息，蓝色的气泡
-        console.log("进入了else if");
+        
         html = "<li class=\"text-left\" >\n"+
-          "<div style=\"display: inline-block;border-radius: 7px;background-color: #59c1e4;padding: 6px 10px 8px 10px;position: relative;\">\n"+
+          "<span style=\"display: inline-block;border-radius: 7px;background-color:  #59c1e4;;padding: 6px 10px 8px 10px;position: relative;\">\n"+
             + text +
-          "</div>\n"+
+          "</span>\n"+
           "</li>";
       }
       
@@ -251,6 +254,8 @@ export default {
          
         // 这里将时间切割为 19:23:38 格式
         this.lastTime = this.allChatRecordsCopy[this.activeVar][1][0].deadline.split(' ')[1]
+        
+        
     },
 // 本方法使用于发送新消息或者获取新消息直接返回至聊天框最底部
     toTheBotton(){
